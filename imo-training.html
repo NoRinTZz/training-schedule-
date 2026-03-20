@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IMO Training</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#f5f2eb;font-family:'IBM Plex Mono',monospace;min-height:100vh;}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+a:hover{opacity:.75;}
+button:focus{outline:none;}
+input:focus{outline:none;}
+::placeholder{color:#c0bbb0;}
+
+/* layout */
+.page{max-width:860px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+.page-wide{max-width:960px;margin:0 auto;padding:1.5rem 1rem 4rem;}
+
+/* header */
+.hdr{border-bottom:2px solid #1c1a14;padding-bottom:1.1rem;margin-bottom:1.6rem;}
+h1{font-family:Georgia,serif;font-size:clamp(1.6rem,5vw,2.6rem);font-weight:600;letter-spacing:-.02em;color:#1c1a14;}
+h1 em{font-weight:300;}
+h2{font-family:Georgia,serif;font-size:clamp(1.6rem,5vw,2.4rem);font-weight:600;letter-spacing:-.02em;color:#1c1a14;}
+
+.badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.6rem;letter-spacing:.08em;
+  text-transform:uppercase;padding:.22rem .75rem;border-radius:3px;}
+.pill-row{display:flex;gap:.45rem;margin-top:.85rem;flex-wrap:wrap;align-items:center;}
+
+.diff-row{display:flex;gap:.7rem;margin-top:.85rem;flex-wrap:wrap;align-items:center;}
+.diff-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+/* week strip */
+.week-strip{display:flex;gap:.4rem;margin-bottom:1.8rem;overflow-x:auto;padding-bottom:.2rem;}
+.day-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.3rem;
+  padding:.5rem .65rem;border-radius:6px;cursor:pointer;border:1px solid #ddd9ce;
+  background:#faf8f3;transition:all .15s;font-family:monospace;}
+.day-btn.active{border-color:#1c1a14;background:#1c1a14;}
+.day-btn span{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#b0a898;font-weight:400;}
+.day-btn.active span{color:#fff;font-weight:600;}
+.day-dots{display:flex;gap:.25rem;}
+.day-dot{width:6px;height:6px;border-radius:50%;}
+.day-btn.active .day-dot{background:#ffffff88 !important;}
+
+/* day heading */
+.day-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.6rem;flex-wrap:wrap;gap:.5rem;}
+.day-name{font-family:Georgia,serif;font-size:1.1rem;font-weight:600;color:#1c1a14;line-height:1;}
+.day-sub{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#b0a898;margin-top:.25rem;}
+
+/* session */
+.sess-hdr{display:flex;align-items:baseline;gap:.8rem;border-bottom:1px solid #ddd9ce;
+  padding-bottom:.55rem;margin-bottom:1rem;}
+.sess-name{font-family:Georgia,serif;font-size:1.3rem;font-weight:600;}
+.sess-time{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:#b0a898;}
+ul.probs{list-style:none;display:flex;flex-direction:column;gap:.7rem;margin-bottom:2.2rem;}
+
+/* problem card */
+.pcard{border-radius:6px;overflow:hidden;border:1px solid #ddd9ce;background:#faf8f3;transition:all .2s;animation:fadeIn .25s ease;}
+.pcard.done{opacity:.52;}
+.pcard-top{height:3px;}
+.pcard-body{padding:1rem;}
+.pcard-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
+.pcard-left{display:flex;align-items:center;gap:.55rem;}
+.chkbox{width:16px;height:16px;border-radius:3px;flex-shrink:0;pointer-events:none;user-select:none;
+  border:1.5px solid #b0a898;background:transparent;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;transition:all .2s;}
+.chkbox.checked{background:var(--accent);border-color:var(--accent);}
+.pnum{font-size:.58rem;color:#b0a898;font-family:monospace;}
+.ptag{padding:.18rem .5rem;border-radius:3px;font-size:.6rem;font-weight:700;font-family:monospace;}
+.pcode{font-family:Georgia,serif;font-size:1.35rem;font-weight:700;letter-spacing:-.01em;
+  line-height:1.1;margin-bottom:.35rem;}
+.pmeta{font-size:.6rem;color:#b0a898;letter-spacing:.04em;margin-bottom:.9rem;}
+.pactions{display:flex;gap:.55rem;flex-wrap:wrap;}
+
+/* buttons */
+.btn{padding:.42rem .9rem;border-radius:4px;font-family:monospace;font-size:.6rem;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;
+  text-decoration:none;display:inline-flex;align-items:center;transition:opacity .15s;}
+.btn-outline{border:1px solid var(--border);background:var(--bg);color:var(--accent);}
+.btn-solid{border:1px solid var(--accent);background:var(--accent);color:#fff;}
+.btn-ghost{background:none;border:1px solid #ddd9ce;color:#b0a898;
+  font-family:monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;padding:.3rem .75rem;border-radius:4px;transition:all .15s;}
+.btn-ghost:hover{border-color:#1c1a14;color:#1c1a14;}
+.btn-sm{padding:.28rem .7rem;font-size:.58rem;}
+
+/* lunch */
+.lunch{display:flex;align-items:center;gap:1rem;margin-bottom:2.2rem;
+  color:#b0a898;font-size:.56rem;letter-spacing:.15em;text-transform:uppercase;}
+.lunch-line{flex:1;height:1px;background:#ddd9ce;}
+
+/* footer */
+.foot{border-top:1px solid #ddd9ce;padding-top:1rem;display:flex;
+  justify-content:space-between;font-size:.58rem;letter-spacing:.1em;
+  text-transform:uppercase;color:#b0a898;}
+
+/* sync badge */
+.sync{font-size:.55rem;font-family:monospace;letter-spacing:.06em;}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.65rem;margin-top:1.1rem;}
+.stat-card{background:#faf8f3;border:1px solid #ddd9ce;border-radius:6px;padding:.85rem .9rem;}
+.stat-num{font-family:Georgia,serif;font-size:1.7rem;font-weight:700;line-height:1;}
+.stat-lbl{font-size:.56rem;color:#b0a898;margin-top:.3rem;letter-spacing:.06em;text-transform:uppercase;}
+
+/* progress bars */
+.bar-wrap{margin-top:1rem;}
+.bar-row{display:flex;justify-content:space-between;font-size:.6rem;color:#b0a898;margin-bottom:.35rem;}
+.bar-track{height:6px;background:#ddd9ce;border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.subj-bars{display:flex;flex-direction:column;gap:.45rem;margin-top:.9rem;}
+.subj-row{display:flex;justify-content:space-between;font-size:.6rem;color:#b0a898;margin-bottom:.2rem;}
+
+/* filters */
+.filters{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.9rem;align-items:center;}
+.filter-btn{font-family:monospace;font-size:.58rem;letter-spacing:.08em;padding:.28rem .6rem;
+  border-radius:3px;cursor:pointer;transition:all .15s;border:1px solid #ddd9ce;
+  background:#faf8f3;color:#b0a898;}
+.filter-btn.active{border-color:#1c1a14;background:#1c1a14;color:#fff;}
+.filter-sep{width:1px;height:16px;background:#ddd9ce;}
+.search-inp{font-family:monospace;font-size:.6rem;padding:.28rem .6rem;border-radius:3px;
+  border:1px solid #ddd9ce;background:#faf8f3;color:#1c1a14;min-width:110px;}
+
+/* progress grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.6rem;}
+.gcard{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;
+  transition:transform .15s,box-shadow .15s;border:1px solid #ddd9ce;background:#faf8f3;}
+.gcard:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.07);}
+.gcard-top{height:3px;flex-shrink:0;}
+.gcard-body{padding:.85rem;flex:1;display:flex;flex-direction:column;gap:.45rem;}
+.gcard-row1{display:flex;justify-content:space-between;align-items:center;}
+.gchk{width:16px;height:16px;border-radius:3px;pointer-events:none;user-select:none;
+  border:1.5px solid #b0a898;background:transparent;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;}
+.gchk.checked{background:var(--accent);border-color:var(--accent);}
+.gtag{padding:.12rem .4rem;border-radius:3px;font-size:.56rem;font-weight:700;font-family:monospace;}
+.gcode{font-family:Georgia,serif;font-size:.95rem;font-weight:700;letter-spacing:-.01em;line-height:1.2;}
+.gmeta{font-size:.54rem;color:#b0a898;line-height:1.6;}
+.gbadge{font-size:.48rem;letter-spacing:.08em;text-transform:uppercase;padding:.12rem .45rem;
+  border-radius:3px;align-self:flex-start;font-family:monospace;font-weight:600;}
+.glink{margin-top:auto;display:flex;align-items:center;justify-content:center;
+  padding:.35rem 0;border-radius:4px;font-size:.52rem;letter-spacing:.1em;
+  text-transform:uppercase;text-decoration:none;font-family:monospace;transition:opacity .15s;}
+
+.empty{text-align:center;color:#b0a898;font-size:.72rem;padding:3rem 0;}
+
+/* colour themes via CSS vars on parent */
+.geo{--accent:#1a6b4a;--bg:#eef6f1;--border:#b6d9c8;}
+.nt {--accent:#7b2d00;--bg:#fdf1ec;--border:#e8bfaa;}
+.alg{--accent:#1a3a6b;--bg:#eef1f9;--border:#b0bee0;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const C={geo:{accent:"#1a6b4a",bg:"#eef6f1",border:"#b6d9c8"},
+         nt :{accent:"#7b2d00",bg:"#fdf1ec",border:"#e8bfaa"},
+         alg:{accent:"#1a3a6b",bg:"#eef1f9",border:"#b0bee0"}};
+const LABEL={geo:"Geometry",nt:"Number Theory",alg:"Algebra"};
+const SLUG ={geo:"G",nt:"N",alg:"A"};
+const DAYS =["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const FULL =["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const PLAN =[["geo","nt"],["alg","geo"],["nt","geo"],["geo","nt"],["alg","nt"],["geo","nt"],["nt","geo"]];
+const TIMES=["08:00 – 11:00","13:00 – 16:00"];
+const YEARS=[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+const DIFF =["#4caf50","#8bc34a","#ffc107","#ff7043","#e53935"];
+
+function buildPool(cls){
+  const pool=[];
+  for(const y of YEARS) for(let l=1;l<=5;l++)
+    pool.push({year:y,level:l,cls,
+      code:`ISL ${y} ${SLUG[cls]}${l}`,tag:`${SLUG[cls]}${l}`,
+      url:`https://ggim.me/ISL-${y}-${SLUG[cls]}${l}`,id:`${y}-${SLUG[cls]}${l}`});
+  return pool;
+}
+const POOL={geo:buildPool("geo"),nt:buildPool("nt"),alg:buildPool("alg")};
+const ALL=[...POOL.geo,...POOL.nt,...POOL.alg];
+
+function seededPick(pool,n,seed){
+  const a=[...pool];let s=(seed^0xdeadbeef)>>>0;
+  for(let i=a.length-1;i>0;i--){
+    s=Math.imul(s^(s>>>16),0x45d9f3b);s=Math.imul(s^(s>>>16),0x45d9f3b);s=(s^(s>>>16))>>>0;
+    const j=s%(i+1);[a[i],a[j]]=[a[j],a[i]];
+  }
+  return a.slice(0,n);
+}
+function pickUndone(pool,n,done,seed){
+  const u=pool.filter(p=>!done.has(p.id));
+  return seededPick(u.length>=n?u:pool,n,seed);
+}
+const mkSeeds=()=>PLAN.map(()=>[Math.random()*1e9|0,Math.random()*1e9|0]);
+
+// ── Storage ────────────────────────────────────────────────────────────────────
+const LS_DONE="imo_done_v7",LS_SEEDS="imo_seeds_v7";
+function lsGet(){try{return new Set(JSON.parse(localStorage.getItem(LS_DONE)||"[]"));}catch(_){return new Set();}}
+function lsSet(s){try{localStorage.setItem(LS_DONE,JSON.stringify([...s]));}catch(_){}}
+function seedsGet(){try{const s=JSON.parse(localStorage.getItem(LS_SEEDS));return s||mkSeeds();}catch(_){return mkSeeds();}}
+function seedsSet(s){try{localStorage.setItem(LS_SEEDS,JSON.stringify(s));}catch(_){}}
+
+// ── App State ──────────────────────────────────────────────────────────────────
+let state={
+  page:"schedule",   // "schedule"|"progress"
+  day:0,
+  seeds:seedsGet(),
+  done:lsGet(),      // Set of solved ids
+  sessions:[],       // computed, never reset on markDone
+  // progress filters
+  filterStatus:"all",
+  filterCls:"all",
+  filterQ:"",
+};
+
+// Build sessions for current day — only called when day or seeds change
+function buildSessions(){
+  state.sessions=PLAN[state.day].map((cls,si)=>({
+    cls,time:TIMES[si],
+    problems:pickUndone(POOL[cls],3,state.done,state.seeds[state.day][si])
+  }));
+}
+buildSessions();
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  document.getElementById("root").innerHTML=
+    state.page==="schedule"?renderSchedule():renderProgress();
+  bindEvents();
+}
+
+// ── Schedule ──────────────────────────────────────────────────────────────────
+function renderSchedule(){
+  const {day,sessions,done,seeds}=state;
+  let sessHTML="";
+  sessions.forEach((sess,si)=>{
+    const col=C[sess.cls];
+    let cards="";
+    sess.problems.forEach((p,pi)=>{
+      const isDone=done.has(p.id);
+      const dc=DIFF[p.level-1];
+      cards+=`
+      <li class="pcard ${isDone?"done":""} ${sess.cls}" data-id="${p.id}" style="--accent:${col.accent};--bg:${col.bg};--border:${col.border};">
+        <div class="pcard-top" style="background:${dc}"></div>
+        <div class="pcard-body">
+          <div class="pcard-row1">
+            <div class="pcard-left">
+              <div class="chkbox ${isDone?"checked":""}">${isDone?"✓":""}</div>
+              <span class="pnum">P${pi+1}</span>
+            </div>
+            <span class="ptag" style="background:${dc}22;border:1px solid ${dc}66;color:${dc};">${p.tag}</span>
+          </div>
+          <div class="pcode" style="color:${isDone?"#b0a898":col.accent};">${p.code}</div>
+          <div class="pmeta">${LABEL[p.cls]} · Level ${p.level}/5 · ${p.year} Shortlist</div>
+          <div class="pactions">
+            <a href="${p.url}" target="_blank" class="btn btn-outline"
+               style="--accent:${col.accent};--bg:${col.bg};--border:${col.border};">View on ggim.me ↗</a>
+            ${isDone
+              ?`<span style="display:flex;align-items:center;font-size:.6rem;color:${col.accent};font-family:monospace;letter-spacing:.08em;">Solved ✓</span>`
+              :`<button class="btn btn-solid mark-btn" data-id="${p.id}"
+                  style="--accent:${col.accent};--bg:${col.bg};--border:${col.border};">✓ Mark solved</button>`
+            }
+          </div>
+        </div>
+      </li>`;
+    });
+    const divider=si<sessions.length-1?`<div class="lunch"><div class="lunch-line"></div>lunch break · 2 hours<div class="lunch-line"></div></div>`:"";
+    sessHTML+=`
+    <div>
+      <div class="sess-hdr">
+        <span class="sess-name" style="color:${col.accent};">${LABEL[sess.cls]}</span>
+        <span class="sess-time">${sess.time}</span>
+      </div>
+      <ul class="probs">${cards}</ul>
+      ${divider}
+    </div>`;
+  });
+
+  // week strip
+  let strip="";
+  PLAN.forEach((pair,i)=>{
+    const on=i===day;
+    const dots=pair.map(cls=>`<span class="day-dot" style="background:${on?"#ffffff88":C[cls].accent};"></span>`).join("");
+    strip+=`<button class="day-btn ${on?"active":""} day-sel" data-day="${i}">
+      <span>${DAYS[i]}</span>
+      <div class="day-dots">${dots}</div>
+    </button>`;
+  });
+
+  // subject pills
+  const pills=[{cls:"geo",n:5},{cls:"nt",n:5},{cls:"alg",n:2}].map(({cls,n})=>
+    `<span class="badge" style="border:1px solid ${C[cls].border};color:${C[cls].accent};background:${C[cls].bg};">${LABEL[cls]} <strong>${n}×</strong></span>`
+  ).join("");
+
+  const diffLegend=DIFF.map((col,i)=>
+    `<span style="display:flex;align-items:center;gap:.3rem;font-size:.58rem;color:#b0a898;">
+      <span class="diff-dot" style="background:${col};"></span>${["1·easy","2","3","4","5·hard"][i]}
+    </span>`
+  ).join("");
+
+  return`<div class="page">
+    <div class="hdr">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
+        <h1>IMO <em>Training</em></h1>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.4rem;">
+          <button class="btn-ghost" id="go-progress">📊 Progress</button>
+          <span class="sync" style="color:#1a6b4a;">☁️ saved</span>
+        </div>
+      </div>
+      <div class="pill-row">${pills}<span style="font-size:.58rem;color:#b0a898;">/ week</span></div>
+      <div class="diff-row"><span style="font-size:.58rem;color:#b0a898;">Difficulty:</span>${diffLegend}</div>
+    </div>
+
+    <div class="week-strip">${strip}</div>
+
+    <div class="day-hdr">
+      <div>
+        <div class="day-name">${FULL[day]}</div>
+        <div class="day-sub">${sessions.map(s=>LABEL[s.cls]).join(" + ")}</div>
+      </div>
+      <button class="btn-ghost btn-sm" id="refresh-btn">↺ New problems</button>
+    </div>
+
+    ${sessHTML}
+
+    <div class="foot">
+      <span><span style="color:#1c1a14;font-weight:600;">${done.size}</span> solved all-time</span>
+      <span>${ALL.length-done.size} remaining</span>
+    </div>
+  </div>`;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function renderProgress(){
+  const {done,filterStatus,filterCls,filterQ}=state;
+  const doneSet=done;
+  const total=ALL.length,nd=doneSet.size,pct=Math.round((nd/total)*100);
+
+  const filtered=ALL.filter(p=>{
+    if(filterCls!=="all"&&p.cls!==filterCls) return false;
+    if(filterStatus==="done"  &&!doneSet.has(p.id)) return false;
+    if(filterStatus==="undone"&& doneSet.has(p.id)) return false;
+    if(filterQ&&!p.code.toLowerCase().includes(filterQ.toLowerCase())) return false;
+    return true;
+  });
+
+  const statCards=["Total","Solved","Remaining"].map((lbl,i)=>{
+    const vals=[total,nd,total-nd];const colors=["#1c1a14","#1a6b4a","#7b2d00"];
+    return`<div class="stat-card"><div class="stat-num" style="color:${colors[i]};">${vals[i]}</div>
+      <div class="stat-lbl">${lbl}</div></div>`;
+  }).join("");
+
+  const subjBars=Object.entries(C).map(([k,v])=>{
+    const sp=POOL[k],sd=sp.filter(p=>doneSet.has(p.id)).length,pct=Math.round((sd/sp.length)*100);
+    return`<div>
+      <div class="subj-row"><span style="color:${v.accent};">${LABEL[k]}</span><span>${sd}/${sp.length} · ${pct}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${v.accent};"></div></div>
+    </div>`;
+  }).join("");
+
+  const fStatus=[["all","All"],["done","✓ Solved"],["undone","○ Unsolved"]].map(([v,l])=>
+    `<button class="filter-btn f-status ${filterStatus===v?"active":""}" data-val="${v}">${l}</button>`).join("");
+  const fCls=[["all","All"],["geo","Geo"],["nt","NT"],["alg","Alg"]].map(([v,l])=>
+    `<button class="filter-btn f-cls ${filterCls===v?"active":""}" data-val="${v}">${l}</button>`).join("");
+
+  const cards=filtered.map(p=>{
+    const isDone=doneSet.has(p.id),col=C[p.cls],dc=DIFF[p.level-1];
+    return`<div class="gcard ${p.cls}" style="--accent:${col.accent};--bg:${col.bg};--border:${col.border};
+      ${isDone?`background:${col.bg};border-color:${col.border};`:""}">
+      <div class="gcard-top" style="background:${dc};"></div>
+      <div class="gcard-body">
+        <div class="gcard-row1">
+          <div class="gchk ${isDone?"checked":""}" style="${isDone?`--accent:${col.accent};`:""}">${isDone?"✓":""}</div>
+          <span class="gtag" style="background:${dc}22;border:1px solid ${dc}66;color:${dc};">${p.tag}</span>
+        </div>
+        <div class="gcode" style="color:${isDone?col.accent:"#1c1a14"};">${p.code}</div>
+        <div class="gmeta">${LABEL[p.cls]}<br/><span style="color:${dc};font-weight:600;">Lv ${p.level}</span> · ${p.year}</div>
+        <div class="gbadge" style="background:${isDone?col.accent+"22":"#ddd9ce"};color:${isDone?col.accent:"#b0a898"};">
+          ${isDone?"✓ Solved":"Not solved"}
+        </div>
+        <a href="${p.url}" target="_blank" class="glink"
+           style="border:1px solid ${col.border};background:${col.bg};color:${col.accent};">View ↗</a>
+      </div>
+    </div>`;
+  }).join("")||`<div class="empty" style="grid-column:1/-1;">No problems match this filter.</div>`;
+
+  return`<div class="page-wide">
+    <div class="hdr">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+        <h2>Progress</h2>
+        <button class="btn-ghost" id="go-schedule">← Schedule</button>
+      </div>
+      <div class="stats">${statCards}</div>
+      <div class="bar-wrap">
+        <div class="bar-row"><span>Overall</span><span style="font-weight:600;">${pct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#1a6b4a;"></div></div>
+      </div>
+      <div class="subj-bars">${subjBars}</div>
+      <p style="margin-top:.85rem;font-size:.6rem;color:#b0a898;line-height:1.7;">
+        Read-only — go back to schedule to mark problems solved. Progress saved locally on this device.
+      </p>
+    </div>
+    <div class="filters">
+      ${fStatus}
+      <div class="filter-sep"></div>
+      ${fCls}
+      <input class="search-inp" id="search-inp" placeholder="e.g. 2019 G3" value="${filterQ}"/>
+    </div>
+    <div style="font-size:.6rem;color:#b0a898;margin-bottom:.9rem;">${filtered.length} problems</div>
+    <div class="grid">${cards}</div>
+  </div>`;
+}
+
+// ── Event binding ─────────────────────────────────────────────────────────────
+function bindEvents(){
+  // schedule
+  document.querySelectorAll(".day-sel").forEach(b=>{
+    b.addEventListener("click",()=>{
+      state.day=+b.dataset.day;
+      buildSessions();
+      render();
+    });
+  });
+
+  document.querySelectorAll(".mark-btn").forEach(btn=>{
+    btn.addEventListener("click",e=>{
+      e.stopPropagation();
+      const id=btn.dataset.id;
+      if(!state.done.has(id)){
+        state.done.add(id);
+        lsSet(state.done);
+        // re-render just the button and checkbox without rebuilding sessions
+        renderCard(id);
+      }
+    });
+  });
+
+  const refreshBtn=document.getElementById("refresh-btn");
+  if(refreshBtn) refreshBtn.addEventListener("click",()=>{
+    const ns=[...state.seeds];
+    ns[state.day]=[Math.random()*1e9|0,Math.random()*1e9|0];
+    state.seeds=ns; seedsSet(ns);
+    buildSessions();
+    render();
+  });
+
+  const gpBtn=document.getElementById("go-progress");
+  if(gpBtn) gpBtn.addEventListener("click",()=>{state.page="progress";render();});
+  const gsBtn=document.getElementById("go-schedule");
+  if(gsBtn) gsBtn.addEventListener("click",()=>{state.page="schedule";render();});
+
+  // progress filters
+  document.querySelectorAll(".f-status").forEach(b=>{
+    b.addEventListener("click",()=>{state.filterStatus=b.dataset.val;render();});
+  });
+  document.querySelectorAll(".f-cls").forEach(b=>{
+    b.addEventListener("click",()=>{state.filterCls=b.dataset.val;render();});
+  });
+  const si=document.getElementById("search-inp");
+  if(si){
+    si.addEventListener("input",()=>{state.filterQ=si.value;render();});
+    // keep focus after re-render
+    si.focus();
+  }
+}
+
+// Partial re-render: update just one card's checkbox + button (no session rebuild)
+function renderCard(id){
+  const card=document.querySelector(`.pcard[data-id="${id}"]`);
+  if(!card) return;
+  const cls=card.classList.contains("geo")?"geo":card.classList.contains("nt")?"nt":"alg";
+  const col=C[cls];
+  card.classList.add("done");
+  const chk=card.querySelector(".chkbox");
+  if(chk){chk.classList.add("checked");chk.innerHTML="✓";
+    chk.style.background=col.accent;chk.style.borderColor=col.accent;}
+  card.style.opacity="0.52";
+  card.style.background=col.bg;card.style.borderColor=col.border;
+  const pcode=card.querySelector(".pcode");if(pcode)pcode.style.color="#b0a898";
+  const btn=card.querySelector(".mark-btn");
+  if(btn){
+    btn.outerHTML=`<span style="display:flex;align-items:center;font-size:.6rem;color:${col.accent};font-family:monospace;letter-spacing:.08em;">Solved ✓</span>`;
+  }
+  // update footer count
+  const foot=document.querySelector(".foot span");
+  if(foot) foot.innerHTML=`<span style="color:#1c1a14;font-weight:600;">${state.done.size}</span> solved all-time`;
+  const foot2=document.querySelectorAll(".foot span")[1];
+  if(foot2) foot2.textContent=`${ALL.length-state.done.size} remaining`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
